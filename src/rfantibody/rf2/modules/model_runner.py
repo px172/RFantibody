@@ -10,6 +10,7 @@ from omegaconf import OmegaConf
 import rfantibody.rf2.modules.rmsd as rmsd
 from rfantibody.rf2.network.predict import pae_unbin, Predictor
 import rfantibody.rf2.modules.pose_util as pu
+from rfantibody.util.quiver import Quiver
 
 class AbPredictor(Predictor):
     """
@@ -197,6 +198,6 @@ def write_output(to_write: OrderedDict, tag: str, conf: HydraConfig) -> None:
         if qv:
             output_qv=Quiver(f'{conf.output.quiver}.qv', mode='w')
             pdblines=[f'QV_{line}' if line.startswith('SCORE') else line for line in pdblines]
-            output_quiver.add_pdb(pdblines, tag=f'{tag}_{suffix}')
+            output_qv.add_pdb(pdblines, tag=f'{tag}_{suffix}')
         else:
             pu.pdblines_to_pdb(pdblines, f'{conf.output.pdb_dir}/{tag}_{suffix}.pdb')
