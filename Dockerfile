@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y software-properties-common && \
 
 RUN alias "python"="python3.10"
 
+RUN groupadd -g 1000 px172 && \
+    useradd -u 1000 -g px172 -m px172
+
 # Make a virtual env that we can safely install into
 
 RUN python3 -m venv /opt/venv
