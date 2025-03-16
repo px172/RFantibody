@@ -13,5 +13,5 @@ poetry run python ${SCRIPT} \
     inference.num_designs=2 \
     inference.final_step=48 \
     diffuser.T=50 \
-    inference.deterministic=True \
+    inference.deterministic=False \
     inference.output_prefix=/home/demo/example_output/rfantibody/ab_des
