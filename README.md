@@ -1,7 +1,7 @@
 # RFantibody
 ### Structure-Based _de novo_ Antibody Design
 
-![g1](https://github.com/user-attachments/assets/6457cd75-3950-4be2-8536-9a564d2013c3)
+![](https://github.com/RosettaCommons/RFantibody/blob/main/github_image.png)
 
 # Description
 RFantibody is a pipeline for the structure-based design of _de novo_ antibodies and nanobodies. RFantibody consists of three separate methods:
