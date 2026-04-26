@@ -183,6 +183,12 @@ def rfdiffusion(
               help='Model weights path (default: auto-detect)')
 @click.option('--omit-aas', type=str, default='CX',
               help='Amino acids to omit from design (default: CX)')
+@click.option('--bias-aa-jsonl', '--bias_AA_jsonl',
+              type=click.Path(exists=True, path_type=Path), default=None,
+              help='Path to an original ProteinMPNN global amino-acid bias JSONL file')
+@click.option('--bias-by-res-jsonl', '--bias_by_res_jsonl',
+              type=click.Path(exists=True, path_type=Path), default=None,
+              help='Path to an original ProteinMPNN per-residue bias JSONL file')
 @click.option('--augment-eps', type=float, default=None,
               help='Backbone noise augmentation (default: model default)')
 @click.option('--deterministic', is_flag=True,
@@ -201,6 +207,8 @@ def proteinmpnn(
     temperature: float,
     weights: Optional[Path],
     omit_aas: str,
+    bias_aa_jsonl: Optional[Path],
+    bias_by_res_jsonl: Optional[Path],
     augment_eps: Optional[float],
     deterministic: bool,
     debug: bool,
@@ -238,6 +246,8 @@ def proteinmpnn(
     output_dir = _resolve_path(output_dir)
     output_quiver = _resolve_path(output_quiver)
     weights = _resolve_path(weights)
+    bias_aa_jsonl = _resolve_path(bias_aa_jsonl)
+    bias_by_res_jsonl = _resolve_path(bias_by_res_jsonl)
 
     # Find the inference script
     script_path = PathConfig.SCRIPTS_DIR / 'proteinmpnn_interface_design.py'
@@ -266,6 +276,10 @@ def proteinmpnn(
     cmd.extend(['-seqs_per_struct', str(seqs_per_struct)])
     cmd.extend(['-temperature', str(temperature)])
     cmd.extend(['-omit_AAs', omit_aas])
+    if bias_aa_jsonl:
+        cmd.extend(['-bias_AA_jsonl', str(bias_aa_jsonl)])
+    if bias_by_res_jsonl:
+        cmd.extend(['-bias_by_res_jsonl', str(bias_by_res_jsonl)])
     if augment_eps is not None:
         cmd.extend(['-augment_eps', str(augment_eps)])
 
