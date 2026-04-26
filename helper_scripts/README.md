@@ -114,15 +114,22 @@ CHAIN:POSITION:AA:VALUE
 
 Example:
 
-- `H:31:Y:2.0` means chain `H`, residue `31`, bias amino acid `Y` by `+2.0`
-- `L:90:C:-2.0` means chain `L`, residue `90`, discourage `C` with `-2.0`
+- `H:31:Y:2.0` means chain `H`, position `31`, bias amino acid `Y` by `+2.0`
+- `L:90:C:-2.0` means chain `L`, position `90`, discourage `C` with `-2.0`
 
 Rules:
 
+- `CHAIN` is the single-character chain ID from the PDB, such as `H` or `L`
 - `POSITION` is 1-indexed
+- `POSITION` is counted independently within each chain
+- when `--pdb_path` is used, `POSITION` refers to the Nth CA residue found in
+  that chain, not necessarily the original PDB residue number
 - `AA` must be one character from `ACDEFGHIKLMNPQRSTVWYX`
 - the same position can be specified multiple times for different amino acids
 - chain length must be known either from `--pdb_path` or `--chain_lengths`
+
+For example, `--set H:10:Y:2.0` and `--set L:10:Y:2.0` target the 10th CA
+residue in chain `H` and the 10th CA residue in chain `L`, respectively.
 
 ## Practical Advice
 
