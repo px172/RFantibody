@@ -320,7 +320,8 @@ class olig_contacts(Potential):
                  contact_matrix, 
                  weight_intra=1, 
                  weight_inter=1,
-                 r_0=8, d_0=2):
+                 r_0=8, d_0=2,
+                 verbose=False):
         """
         Parameters:
             chain_lengths (list, required): List of chain lengths, length is (Nchains)
@@ -332,8 +333,10 @@ class olig_contacts(Potential):
 
             weight (int/float, optional): Scaling/weighting factor
         """
-        print('This is chain contact matrix you are using')
-        ic(contact_matrix)
+        self.verbose = bool(verbose)
+        if self.verbose:
+            print('This is chain contact matrix you are using')
+            ic(contact_matrix)
         self.contact_matrix = contact_matrix
         self.weight_intra = weight_intra 
         self.weight_inter = weight_inter 
@@ -499,13 +502,15 @@ class substrate_contacts(Potential):
     Implicitly models a ligand with an attractive-repulsive potential.
     '''
 
-    def __init__(self, weight=1, r_0=8, d_0=2, s=1, eps=1e-6, rep_r_0=5, rep_s=2, rep_r_min=1):
+    def __init__(self, weight=1, r_0=8, d_0=2, s=1, eps=1e-6, rep_r_0=5, rep_s=2, rep_r_min=1, verbose=False):
 
         self.r_0       = r_0
         self.weight    = weight
         self.d_0       = d_0
         self.eps       = eps
-        ic(rep_r_0, rep_s)
+        self.verbose   = bool(verbose)
+        if self.verbose:
+            ic(rep_r_0, rep_s)
         
         # motif frame coordinates
         # NOTE: these probably need to be set after sample_init() call, because the motif sequence position in design must be known
@@ -549,7 +554,8 @@ class substrate_contacts(Potential):
         all_energies = []
         for i, energy_fn in enumerate(self.energies):
             energy = energy_fn(dgram)
-            ic(i, energy.sum(), energy.min(), energy.max())
+            if self.verbose:
+                ic(i, energy.sum(), energy.min(), energy.max())
             all_energies.append(energy.sum())
         return - self.weight * sum(all_energies)
 
@@ -892,4 +898,3 @@ require_binderlen      = { 'binder_ROG',
 
 require_hotspot_res    = { 'binder_distance_ReLU',
                            'binder_any_ReLU' }
-

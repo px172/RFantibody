@@ -177,7 +177,8 @@ def apply_templating_scheme(item,
                             t2d,
                             T_scheme,
                             hotspot_dim,
-                            timestep):
+                            timestep,
+                            verbose=False):
     '''
     Take the template features which have been featurized normally and apply the selected
     templating scheme to them
@@ -220,7 +221,8 @@ def apply_templating_scheme(item,
     ret_t1d[:,~item.loop_mask,20] = 0 
     ret_t1d[:,item.loop_mask,20]  = 1 
 
-    ic(f'Featurizing with {T_scheme}')
+    if verbose:
+        ic(f'Featurizing with {T_scheme}')
 
     if item.inputs.fixed_dock or T_scheme == 'fixed_dock':
         ######################################################
@@ -477,7 +479,8 @@ def featurize(item,
               T_scheme,
               timestep,
               mask_all_sc,
-              bugfix_t1d_mask):
+              bugfix_t1d_mask,
+              verbose=False):
     '''
     Takes a sequence and a noised structure and returns features ready to be fed into the model
 
@@ -585,7 +588,8 @@ def featurize(item,
                                                t2d,
                                                T_scheme,
                                                hotspot_dim,
-                                               timestep
+                                               timestep,
+                                               verbose=verbose
                                              )
 
     input_dict = {

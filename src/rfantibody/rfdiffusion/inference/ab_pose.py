@@ -41,6 +41,7 @@ class AbPose():
         self.H=Dotdict()
         self.L=Dotdict()
         self.T=Dotdict()
+        self.verbose=False
         self.cdr_names=['L1','L2','L3','H1','H2','H3']
         self.H_names=['H1','H2','H3']
         self.L_names=['L1','L2','L3']
@@ -95,7 +96,8 @@ class AbPose():
         
         hotspot_idx = torch.zeros(self.length()).bool()
         if hotspot_res is None:
-            ic("WARNING! No hotspot residues were provided to the model at inference time")
+            if self.verbose:
+                ic("WARNING! No hotspot residues were provided to the model at inference time")
             return hotspot_idx
 
         assert all([i[0].isalpha() for i in hotspot_res]), "Hotspot residues need to be provided in pdb-indexed form. E.g. A100,A103"
@@ -106,7 +108,8 @@ class AbPose():
         for idx,res in enumerate(self.T.pdb_idx):
             query = (res[0], idx2int(res[1]))
             if query in hotspots:
-                ic(f'Using {res} as a hotspot')
+                if self.verbose:
+                    ic(f'Using {res} as a hotspot')
                 hotspot_idx[idx + binderlen] = True
         
         return hotspot_idx
@@ -599,13 +602,16 @@ class AbPose():
 
             ### Input Checking
             if loop.upper() not in self.cdr_names:
-                ic(f'Unknown loop name: {loop} encountered in antibody.design_loops. Skipping this loop and proceeding.')
+                if self.verbose:
+                    ic(f'Unknown loop name: {loop} encountered in antibody.design_loops. Skipping this loop and proceeding.')
                 continue
             if loop.upper()[0] == 'L' and not self.has_L():
-                ic(f'Design of L chain loop {loop} requested for an example with only an H chain. Skipping this loop and proceeding.')
+                if self.verbose:
+                    ic(f'Design of L chain loop {loop} requested for an example with only an H chain. Skipping this loop and proceeding.')
                 continue
             if loop.upper()[0] == 'H' and not self.has_H():
-                ic(f'Design of H chain loop {loop} requested for an example with only an H chain. Skipping this loop and proceeding.')
+                if self.verbose:
+                    ic(f'Design of H chain loop {loop} requested for an example with only an H chain. Skipping this loop and proceeding.')
                 continue
             ### End Input Checking
 
@@ -672,4 +678,3 @@ class AbPose():
 
         return inputs
         
-

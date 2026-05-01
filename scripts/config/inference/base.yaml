@@ -5,6 +5,7 @@ inference:
   num_designs: 10
   design_startnum: 0
   no_trajectory: False
+  verbose: False
   ckpt_override_path: null
   symmetry: null
   recenter: True
