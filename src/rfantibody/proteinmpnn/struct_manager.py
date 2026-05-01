@@ -115,10 +115,15 @@ class StructManager():
         self,
         pose: Pose,
         tag: str,
+        score_str: str = None,
     ) -> None:
         '''
         Dump this pose to either a pdb file, or quiver file depending on the output arguments
         '''
+        pdblines = pose.to_pdblines()
+        if score_str is not None:
+            pdblines.insert(0, f"REMARK RFANTIBODY_SCORE {score_str}\n")
+
         if self.output_pdb:
             # If the outpdbdir does not exist, create it
             # If there are parents in the path that do not exist, create them as well
@@ -126,11 +131,11 @@ class StructManager():
                 os.makedirs(self.outpdbdir)
 
             pdbfile = os.path.join(self.outpdbdir, tag + '.pdb')
-            pose.dump_pdb(pdbfile)
+            with open(pdbfile, 'w') as f:
+                f.writelines(pdblines)
 
         if self.output_quiver:
-            pdblines = pose.to_pdblines()
-            self.outquiver.add_pdb(pdblines, tag)
+            self.outquiver.add_pdb(pdblines, tag, score_str=score_str)
 
     def load_pose(self, tag: str) -> Pose:
         '''

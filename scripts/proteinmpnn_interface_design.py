@@ -194,12 +194,13 @@ class ProteinMPNN_runner():
         # Iterate though each seq score pair and thread the sequence onto the pose
         # Then write each pose to a pdb file
         prefix = f"{sample_feats.tag}_dldesign"
-        for idx, (seq, _) in enumerate(seqs_scores): 
+        for idx, (seq, score) in enumerate(seqs_scores):
             sample_feats.thread_mpnn_seq(seq)
 
             outtag = f"{prefix}_{idx}"
+            score_str = f"proteinmpnn_score={float(np.asarray(score).item()):.6f}"
 
-            self.struct_manager.dump_pose(sample_feats.pose, outtag)
+            self.struct_manager.dump_pose(sample_feats.pose, outtag, score_str=score_str)
 
     def run_model(self, tag, args):
         t0 = time.time()
