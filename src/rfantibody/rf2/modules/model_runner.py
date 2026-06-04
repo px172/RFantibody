@@ -10,6 +10,7 @@ from omegaconf import OmegaConf
 import rfantibody.rf2.modules.pose_util as pu
 import rfantibody.rf2.modules.rmsd as rmsd
 from rfantibody.rf2.network.predict import Predictor, pae_unbin
+from rfantibody.util.device import get_accelerator_device
 from rfantibody.util.quiver import Quiver
 
 
@@ -17,13 +18,13 @@ class AbPredictor(Predictor):
     """
     Subclass of RF2 Predictor class, to predict Ab structures
     """
-    def __init__(self, conf: HydraConfig, preprocess_fn: Preprocess, device='cuda:0'):
+    def __init__(self, conf: HydraConfig, preprocess_fn: Preprocess, device=None):
         """
         Initialise from config
         """
         self.conf=conf
         self.preprocess_fn=preprocess_fn
-        self.device=device
+        self.device=torch.device(device) if device is not None else get_accelerator_device()
         #self._update_params_from_checkpoint()        
         super().__init__(self.conf.model.model_weights, self.device, model_param=self.conf.model_param)
         self.return_rmsds=any([var is not None for var in [conf.input.pdb, conf.input.pdb_dir, conf.input.quiver]])
@@ -86,7 +87,8 @@ class AbPredictor(Predictor):
                     to_write['best'] = {'pose': best_pose, 'metrics': best_metrics}
                 if self.conf.output.output_intermediates:
                     to_write[i_cycle] = {'pose': output_pose_i, 'metrics': metrics_i}
-                torch.cuda.empty_cache()
+                if self.device.type == "cuda":
+                    torch.cuda.empty_cache()
         print(f"[RF2] Completed: {tag} - Best pLDDT: {best_lddt.mean():.3f}")
         write_output(to_write, tag, self.conf)
 

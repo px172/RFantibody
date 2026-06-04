@@ -25,16 +25,26 @@ from enum import Enum
 from itertools import product
 from typing import Dict
 
-import dgl
 import numpy as np
 import torch
 import torch.nn as nn
-from dgl import DGLGraph
 from torch import Tensor
-from torch.cuda.nvtx import range as nvtx_range
 
 from se3_transformer.model.fiber import Fiber
+from se3_transformer.model.torch_graph import (
+    copy_e_mean as torch_copy_e_mean,
+    copy_e_sum as torch_copy_e_sum,
+    is_torch_graph,
+)
+from se3_transformer.runtime.profiling import nvtx_range
 from se3_transformer.runtime.utils import degree_to_dim, unfuse_features
+
+try:
+    import dgl
+    from dgl import DGLGraph
+except Exception:
+    dgl = None
+    DGLGraph = object
 
 
 class ConvSE3FuseLevel(Enum):
@@ -369,13 +379,25 @@ class ConvSE3(nn.Module):
                     if self.sum_over_edge:
                         with nvtx_range(f'pooling'):
                             if isinstance(out, dict):
-                                out[str(degree_out)] = dgl.ops.copy_e_sum(graph, out[str(degree_out)])
+                                if is_torch_graph(graph):
+                                    out[str(degree_out)] = torch_copy_e_sum(graph, out[str(degree_out)])
+                                else:
+                                    out[str(degree_out)] = dgl.ops.copy_e_sum(graph, out[str(degree_out)])
                             else:
-                                out = dgl.ops.copy_e_sum(graph, out)
+                                if is_torch_graph(graph):
+                                    out = torch_copy_e_sum(graph, out)
+                                else:
+                                    out = dgl.ops.copy_e_sum(graph, out)
                     else:
                         with nvtx_range(f'pooling'):
                             if isinstance(out, dict):
-                                out[str(degree_out)] = dgl.ops.copy_e_mean(graph, out[str(degree_out)])
+                                if is_torch_graph(graph):
+                                    out[str(degree_out)] = torch_copy_e_mean(graph, out[str(degree_out)])
+                                else:
+                                    out[str(degree_out)] = dgl.ops.copy_e_mean(graph, out[str(degree_out)])
                             else:
-                                out = dgl.ops.copy_e_mean(graph, out)
+                                if is_torch_graph(graph):
+                                    out = torch_copy_e_mean(graph, out)
+                                else:
+                                    out = dgl.ops.copy_e_mean(graph, out)
             return out

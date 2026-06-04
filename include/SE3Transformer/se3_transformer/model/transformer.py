@@ -26,7 +26,6 @@ from typing import Optional, Literal, Dict
 
 import torch
 import torch.nn as nn
-from dgl import DGLGraph
 from torch import Tensor
 
 from se3_transformer.model.basis import get_basis, update_basis_with_fused
@@ -37,6 +36,11 @@ from se3_transformer.model.layers.norm import NormSE3
 from se3_transformer.model.layers.pooling import GPooling
 from se3_transformer.runtime.utils import str2bool
 from se3_transformer.model.fiber import Fiber
+
+try:
+    from dgl import DGLGraph
+except Exception:
+    DGLGraph = object
 
 
 class Sequential(nn.Sequential):

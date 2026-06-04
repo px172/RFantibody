@@ -10,6 +10,7 @@ import torch
 import rfantibody.proteinmpnn.util_protein_mpnn as mpnn_util
 from rfantibody.proteinmpnn.sample_features import SampleFeatures
 from rfantibody.proteinmpnn.struct_manager import StructManager
+from rfantibody.util.device import get_accelerator_device, seed_accelerators
 
 #################################
 # Parse Arguments
@@ -67,11 +68,12 @@ if args.deterministic:
     random.seed(42)
     np.random.seed(42)
     torch.manual_seed(42)
-    torch.cuda.manual_seed_all(42)
+    seed_accelerators(42)
     
     # Enable deterministic behavior
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    if torch.cuda.is_available():
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 class ProteinMPNN_runner():
     '''
@@ -82,12 +84,8 @@ class ProteinMPNN_runner():
     def __init__(self, args, struct_manager):
         self.struct_manager = struct_manager
 
-        if torch.cuda.is_available():
-            print('Found GPU will run ProteinMPNN on GPU')
-            self.device = "cuda:0"
-        else:
-            print('No GPU found, running ProteinMPNN on CPU')
-            self.device = "cpu"
+        self.device = get_accelerator_device()
+        print(f'Running ProteinMPNN on {self.device}')
 
         self.mpnn_model = mpnn_util.init_seq_optimize_model(
             self.device,
@@ -200,6 +198,5 @@ for pdb in struct_manager.iterate():
     # We are done with one pdb, record that we finished
     struct_manager.record_checkpoint(pdb)
     
-
 
 

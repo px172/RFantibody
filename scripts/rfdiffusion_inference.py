@@ -31,13 +31,18 @@ from omegaconf import OmegaConf
 from rfantibody.rfdiffusion.chemical import num2aa
 from rfantibody.rfdiffusion.inference import model_runners
 from rfantibody.rfdiffusion.util import generate_Cbeta, writepdb, writepdb_multi
+from rfantibody.util.device import describe_device, seed_accelerators
+from rfantibody.util.hydra_compat import patch_hydra_argparse_help
 from rfantibody.util.io import ab_write_pdblines
 from rfantibody.util.quiver import Quiver
+
+patch_hydra_argparse_help()
 
 conversion = 'ARNDCQEGHILKMFPSTWYV-'
 
 def make_deterministic(seed=0):
         torch.manual_seed(seed)
+        seed_accelerators(seed)
         np.random.seed(seed)
         random.seed(seed)
 
@@ -213,7 +218,7 @@ def main(conf: HydraConfig) -> None:
         trb = dict(
             config = OmegaConf.to_container(sampler._conf, resolve=True),
             plddt = plddt_stack.cpu().numpy(),
-            device = torch.cuda.get_device_name(torch.cuda.current_device()) if torch.cuda.is_available() else 'CPU',
+            device = describe_device(sampler.device),
             time = time.time() - start_time
         )
 
@@ -269,7 +274,7 @@ def main(conf: HydraConfig) -> None:
                 )
 
                 with open(out, 'w') as f_out:
-                    f_out.write('\n'.join(pdblines))
+                    f_out.writelines(pdblines)
 
             else:
                 # Add to Quiver file
