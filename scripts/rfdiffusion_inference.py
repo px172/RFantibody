@@ -213,7 +213,7 @@ def main(conf: HydraConfig) -> None:
         trb = dict(
             config = OmegaConf.to_container(sampler._conf, resolve=True),
             plddt = plddt_stack.cpu().numpy(),
-            device = torch.cuda.get_device_name(torch.cuda.current_device()) if torch.cuda.is_available() else 'CPU',
+            device = torch.cuda.get_device_name(torch.cuda.current_device()) if torch.cuda.is_available() else (torch.xpu.get_device_name(0) if hasattr(torch, 'xpu') and torch.xpu.is_available() else 'CPU'),
             time = time.time() - start_time
         )
 

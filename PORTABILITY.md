@@ -40,7 +40,8 @@ was the DGL dependency plus device-management calls.
 - Replaced hardcoded `cuda:0`, `torch.cuda.amp.autocast`, `torch.cuda.nvtx`,
   and `torch.cuda` memory calls across the active inference path (predict.py,
   model_runner.py, model_runners.py, proteinmpnn, SE3_network.py,
-  Track_module.py, and the SE3 layers).
+  Track_module.py, the SE3 layers, and the entrypoint scripts in `scripts/` —
+  `rf2_predict.py`, `proteinmpnn_interface_design.py`, `rfdiffusion_inference.py`).
 
 ### Step 1 — PyTorch for Blackwell
 - `torch==2.3.*` (cu118) → `torch==2.8.*` on the `cu128` index.
@@ -65,7 +66,7 @@ installed.
 | Graph ops vs DGL | bit-identical (fwd + grad) | — | — |
 | Graph ops vs CPU | ✅ | ✅ ~1e-6 | ✅ ~1e-6 |
 | SE3 forward vs CPU | ✅ (0.0) | ✅ ~2e-5 | ✅ ~2e-5 |
-| Full pipeline | — | ✅ (see below) | not yet |
+| Full pipeline | — | ✅ (see below) | ✅ (see below) |
 
 - **DGL equivalence**: `copy_e_sum` / `copy_e_mean` / `e_dot_v` gradients were
   bit-identical (0.0); full-model output matched the original DGL code exactly.
@@ -73,22 +74,30 @@ installed.
   pipeline could not run on Intel hardware before this work. `get_device()`
   correctly selects the discrete Arc B70 (not the integrated UHD 770).
 
-### Full antibody pipeline (RTX 3060, torch 2.8+cu128)
+### Full antibody pipeline (RFdiffusion → ProteinMPNN → RF2)
 
-| Stage | Run | Result |
+Run on both a CUDA GPU and an Intel XPU with the same example inputs. Each row
+is one stage; all stages returned exit code 0 and wrote valid outputs.
+
+| Stage | RTX 3060 (torch 2.8+cu128) | Arc PRO B70 (torch 2.8+xpu) |
 |---|---|---|
-| RFdiffusion | 2 nanobody designs, `--diffuser-t 50` | RC=0, 6.65 min, valid PDBs |
-| ProteinMPNN | CDR sequence design | RC=0, sequence in ~1 s on GPU |
-| RF2 | structure prediction, 11 recycles | RC=0, **pLDDT 0.910**, output PDB |
+| RFdiffusion | 2 designs, 6.65 min, valid PDBs | 1 design, 1.38 min, valid PDB (tensors on `xpu:0`) |
+| ProteinMPNN | seq in ~1 s | runs on `xpu`, seq in ~1 s |
+| RF2 (11 recycles) | **pLDDT 0.910** | **pLDDT 0.910** (identical), same output PDB |
 
-The high pLDDT confirms correct numerics end-to-end, not merely that the code
-ran.
+RF2's pLDDT is identical (0.910) on CUDA and XPU, and the RFdiffusion PDBs are
+byte-for-byte the same size — the high, matching pLDDT confirms correct numerics
+end-to-end on Intel (including the device-agnostic `autocast('xpu')` and fp16
+paths), not merely that the code ran. The **entire** RFdiffusion and RF2 models
+run on XPU, not just the SE(3) core — all ops are supported.
+
+Note: reaching the XPU run also surfaced device-selection logic in `scripts/`
+(outside `src/`) that the initial pass missed — `rf2_predict.py` (was forcing
+CPU on non-CUDA), `proteinmpnn_interface_design.py`, and a log line in
+`rfdiffusion_inference.py` — now all routed through `get_device()`.
 
 ## Not yet done
 
-- **Full pipeline on Intel XPU** — the SE3/graph core passes on XPU, but the
-  complete RFdiffusion/RF2 use ops beyond that core whose XPU coverage is
-  untested.
 - **AMD ROCm** — code is ready; no AMD hardware was available to test.
 - **`test.run_tests` reference-output regression** — reference outputs predate
   this torch version, so tolerances may need updating.

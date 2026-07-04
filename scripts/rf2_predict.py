@@ -8,6 +8,7 @@ import rfantibody.rf2.modules.pose_util as pu
 import rfantibody.rf2.modules.util as util
 from rfantibody.rf2.modules.model_runner import AbPredictor
 from rfantibody.rf2.modules.preprocess import Preprocess, pose_to_inference_RFinput
+from rfantibody.util.device import get_device
 
 
 @hydra.main(version_base=None, config_path='../src/rfantibody/rf2/config', config_name='base')
@@ -29,7 +30,7 @@ def main(conf: HydraConfig) -> None:
         torch.backends.cudnn.benchmark = False
     
     done_list=util.get_done_list(conf)
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = get_device()
     preprocessor=Preprocess(pose_to_inference_RFinput, conf)
     predictor=AbPredictor(conf, preprocess_fn=preprocessor, device=device)
     for pose, tag in pu.pose_generator(conf):

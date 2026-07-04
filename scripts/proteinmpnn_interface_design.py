@@ -10,6 +10,7 @@ import torch
 import rfantibody.proteinmpnn.util_protein_mpnn as mpnn_util
 from rfantibody.proteinmpnn.sample_features import SampleFeatures
 from rfantibody.proteinmpnn.struct_manager import StructManager
+from rfantibody.util.device import get_device
 
 #################################
 # Parse Arguments
@@ -82,12 +83,11 @@ class ProteinMPNN_runner():
     def __init__(self, args, struct_manager):
         self.struct_manager = struct_manager
 
-        if torch.cuda.is_available():
-            print('Found GPU will run ProteinMPNN on GPU')
-            self.device = "cuda:0"
-        else:
+        self.device = str(get_device())
+        if self.device == "cpu":
             print('No GPU found, running ProteinMPNN on CPU')
-            self.device = "cpu"
+        else:
+            print(f'Found GPU, will run ProteinMPNN on {self.device}')
 
         self.mpnn_model = mpnn_util.init_seq_optimize_model(
             self.device,
