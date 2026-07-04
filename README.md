@@ -52,7 +52,7 @@ If this command runs successfully then you have a compatible GPU and RFantibody 
 
 ### System Requirements
 
-- **GPU**: NVIDIA GPU with CUDA 11.8+ support
+- **GPU**: NVIDIA GPU with CUDA 12.8+ support (includes Blackwell / RTX 50-series); or AMD ROCm / Intel XPU with a matching PyTorch build
 - **OS**: Linux (Ubuntu 22.04 recommended)
 
 
@@ -95,8 +95,7 @@ uv sync
 This uses uv to:
 - Download Python 3.10 if not already installed
 - Create a virtual environment in `.venv/`
-- Install all dependencies including PyTorch with CUDA 11.8 support
-- Install [Deep Graph Library](https://www.dgl.ai) from CUDA-enabled wheels
+- Install all dependencies including PyTorch with CUDA 12.8 support
 
 ### 5. Activate the Environment
 

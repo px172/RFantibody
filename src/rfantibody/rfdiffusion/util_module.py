@@ -1,10 +1,10 @@
 import copy
 
-import dgl
 import numpy as np
 import torch
 import torch.nn as nn
 
+from se3_transformer.model.graph import graph as build_graph
 from rfantibody.rfdiffusion.util import *
 
 
@@ -126,7 +126,7 @@ def make_full_graph(xyz, pair, idx, top_k=64, kmin=9):
    
     src = b*L+i
     tgt = b*L+j
-    G = dgl.graph((src, tgt), num_nodes=B*L).to(device)
+    G = build_graph(src, tgt, num_nodes=B*L).to(device)
     G.edata['rel_pos'] = (xyz[b,j,:] - xyz[b,i,:]).detach() # no gradient through basis function
 
     return G, pair[b,i,j][...,None]
@@ -164,7 +164,7 @@ def make_topk_graph(xyz, pair, idx, top_k=64, kmin=32, eps=1e-6):
    
     src = b*L+i
     tgt = b*L+j
-    G = dgl.graph((src, tgt), num_nodes=B*L).to(device)
+    G = build_graph(src, tgt, num_nodes=B*L).to(device)
     G.edata['rel_pos'] = (xyz[b,j,:] - xyz[b,i,:]).detach() # no gradient through basis function
 
     return G, pair[b,i,j][...,None]

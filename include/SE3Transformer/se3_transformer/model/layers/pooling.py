@@ -24,9 +24,9 @@
 from typing import Dict, Literal
 
 import torch.nn as nn
-from dgl import DGLGraph
-from dgl.nn.pytorch import AvgPooling, MaxPooling
 from torch import Tensor
+
+from se3_transformer.model.graph import Graph, avg_pooling, max_pooling
 
 
 class GPooling(nn.Module):
@@ -46,8 +46,8 @@ class GPooling(nn.Module):
         assert pool in ['max', 'avg'], f'Unknown pooling: {pool}'
         assert feat_type == 0 or pool == 'avg', 'Max pooling on type > 0 features will break equivariance'
         self.feat_type = feat_type
-        self.pool = MaxPooling() if pool == 'max' else AvgPooling()
+        self.pool = max_pooling if pool == 'max' else avg_pooling
 
-    def forward(self, features: Dict[str, Tensor], graph: DGLGraph, **kwargs) -> Tensor:
+    def forward(self, features: Dict[str, Tensor], graph: Graph, **kwargs) -> Tensor:
         pooled = self.pool(graph, features[str(self.feat_type)])
         return pooled.squeeze(dim=-1)

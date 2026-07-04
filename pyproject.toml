@@ -9,17 +9,14 @@ authors = [
     { name = "Joe Watchwell", email = "joe.watchwell@gmail.com" }
 ]
 dependencies = [
-    "torch==2.3.*",
-    "torchaudio",
-    "torchvision",
+    "torch==2.8.*",
     "torch-utils",
     "numpy>=1.0,<2.0",
-    "cuda-python==11.8",
+    "cuda-python>=12",
     "hydra-core",
     "icecream",
     "opt-einsum",
     "biotite>=0.38.0",
-    "dgl",
     "e3nn",
     "pyrsistent",
     "click>=8.0.0",
@@ -49,13 +46,10 @@ rf2 = "rfantibody.cli.inference:rf2"
 
 [tool.uv.sources]
 torch = { index = "pytorch" }
-torchaudio = { index = "pytorch" }
-torchvision = { index = "pytorch" }
-dgl = { url = "https://data.dgl.ai/wheels/torch-2.3/cu118/dgl-2.4.0%2Bcu118-cp310-cp310-manylinux1_x86_64.whl" }
 
 [[tool.uv.index]]
 name = "pytorch"
-url = "https://download.pytorch.org/whl/cu118"
+url = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
 [build-system]

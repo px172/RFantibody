@@ -25,14 +25,13 @@ from enum import Enum
 from itertools import product
 from typing import Dict
 
-import dgl
 import numpy as np
 import torch
 import torch.nn as nn
-from dgl import DGLGraph
 from torch import Tensor
-from torch.cuda.nvtx import range as nvtx_range
 
+from se3_transformer.model.profiling import nvtx_range
+from se3_transformer.model.graph import Graph, copy_e_sum, copy_e_mean
 from se3_transformer.model.fiber import Fiber
 from se3_transformer.runtime.utils import degree_to_dim, unfuse_features
 
@@ -189,7 +188,7 @@ class VersatileConvSE3(nn.Module):
                     if basis is not None:
                         # This block performs the einsum n i l, n o i f, n l f k -> n o k
                         basis_view = basis[e_i:e_j].view(e_j-e_i, in_dim, -1)
-                        with torch.cuda.amp.autocast(False):
+                        with torch.autocast(device_type=features.device.type, enabled=False):
                             tmp = (features[e_i:e_j] @ basis_view.float()).view(e_j-e_i, -1, basis.shape[-1])
                             retslice = (radial_weights.float() @ tmp)[:, :, :out_dim]
                             retval[e_i:e_j] = retslice
@@ -311,7 +310,7 @@ class ConvSE3(nn.Module):
             self,
             node_feats: Dict[str, Tensor],
             edge_feats: Dict[str, Tensor],
-            graph: DGLGraph,
+            graph: Graph,
             basis: Dict[str, Tensor]
     ):
         with nvtx_range(f'ConvSE3'):
@@ -369,13 +368,13 @@ class ConvSE3(nn.Module):
                     if self.sum_over_edge:
                         with nvtx_range(f'pooling'):
                             if isinstance(out, dict):
-                                out[str(degree_out)] = dgl.ops.copy_e_sum(graph, out[str(degree_out)])
+                                out[str(degree_out)] = copy_e_sum(graph, out[str(degree_out)])
                             else:
-                                out = dgl.ops.copy_e_sum(graph, out)
+                                out = copy_e_sum(graph, out)
                     else:
                         with nvtx_range(f'pooling'):
                             if isinstance(out, dict):
-                                out[str(degree_out)] = dgl.ops.copy_e_mean(graph, out[str(degree_out)])
+                                out[str(degree_out)] = copy_e_mean(graph, out[str(degree_out)])
                             else:
-                                out = dgl.ops.copy_e_mean(graph, out)
+                                out = copy_e_mean(graph, out)
             return out

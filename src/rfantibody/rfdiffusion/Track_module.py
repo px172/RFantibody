@@ -7,6 +7,7 @@ from opt_einsum import contract as einsum
 from rfantibody.rfdiffusion.Attention_module import *
 from rfantibody.rfdiffusion.SE3_network import SE3TransformerWrapper
 from rfantibody.rfdiffusion.util_module import *
+from rfantibody.util.device import autocast_disabled
 
 # Components for three-track blocks
 # 1. MSA -> MSA update (biased attention. bias from pair & structure)
@@ -238,7 +239,7 @@ class Str2Str(nn.Module):
         nn.init.zeros_(self.embed_e1.bias)
         nn.init.zeros_(self.embed_e2.bias)
     
-    @torch.cuda.amp.autocast(enabled=False)
+    @autocast_disabled
     def forward(self, msa, pair, R_in, T_in, xyz, state, idx, motif_mask, top_k=64, eps=1e-5):
         B, N, L = msa.shape[:3]
 

@@ -31,6 +31,14 @@
 - The test framework automatically detects GPU type and uses appropriate reference files
 
 ## Development Log
+### 2026-07-03
+- GPU-portability migration (support AMD ROCm, Intel XPU, and NVIDIA Blackwell/sm_120)
+- Removed the DGL dependency entirely: added `se3_transformer/model/graph.py`, a lightweight `Graph` class plus native-PyTorch scatter reimplementations of the only DGL ops used (`copy_e_sum`, `copy_e_mean`, `e_dot_v`, `edge_softmax`, pooling). Verified bit-identical to DGL (forward + gradients) and identical full-model output
+- The vendored SE3-Transformer has no custom CUDA kernels (pure PyTorch + DGL), so no kernel rewrite was needed
+- Device abstraction: added `src/rfantibody/util/device.py` (`get_device`, device-agnostic `autocast`, `autocast_disabled` decorator, memory-stat dispatch) and `se3_transformer/model/profiling.py` (portable `nvtx_range`). Replaced hardcoded `cuda:0`, `torch.cuda.amp.autocast`, `torch.cuda.nvtx.range`, and `torch.cuda.{empty_cache,*_memory_*}` calls throughout the active inference path
+- Bumped `torch==2.3.*` (cu118) to `torch==2.8.*` on the cu128 index for Blackwell support; removed unused torchaudio/torchvision; relaxed unused `cuda-python` to `>=12`. Bumped Docker/Apptainer base images to `nvidia/cuda:12.8.0-cudnn-devel-ubuntu22.04`
+- Verified end-to-end on an RTX 5090 (sm_120): GPU forward matches CPU; all modules import under torch 2.8
+
 ### 2026-01-27
 - Replaced USalign-based structural alignment with biotite's Kabsch superposition for RMSD calculations
 - Simplified RMSD calculation workflow: now uses direct Cα superposition for same-length sequences
